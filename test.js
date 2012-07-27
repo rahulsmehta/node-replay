@@ -39,7 +39,7 @@ var capture = function(proxy){
 
 	proxy.on('response_data', function(data) {
 		var _data = data.toString('utf8',0,data.length);
-		var fn = crypt.hex_md5(hash[0]+hash[1]+hash[2])+'.json'; // add command line flag for file format
+		var fn = crypt.hex_md5(hash[0]+hash[1]+hash[2]); // add command line flag for file format
 		console.log(_url+' -> '+fn);
 		var fd = fs.openSync(JPATH+fn, 'w+');
 		fs.writeSync(fd,_data);
