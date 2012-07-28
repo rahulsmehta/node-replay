@@ -6,12 +6,15 @@ var server = require('./lib/node-mitm-proxy/proxy.js'),
 var scriptArgs = process.argv.slice(2),
 		flag = scriptArgs[0];
 
-var JPATH = "logs/"
 
-var _confg = {
+var proxy _config = {
 	'proxy-port':8080,
 	'verbose':false
-};
+},
+	route_config = {
+		"graph":"/service/graph",
+		"transfer":"/service/transfer"		
+	};
 
 var capture = function(proxy){
 	
@@ -40,9 +43,16 @@ var capture = function(proxy){
 	proxy.on('response_data', function(data) {
 		var _data = data.toString('utf8',0,data.length);
 		var fn = crypt.hex_md5(hash[0]+hash[1]+hash[2]); // add command line flag for file format
-		console.log(_url+' -> '+fn);
 		var fd = fs.openSync(JPATH+fn, 'w+');
-		fs.writeSync(fd,_data);
+		
+		var url_tk = _url.split('/'),
+				graph_tk = route_config.graph.split('/'),
+				trans_tk = route_config.transfer.split('/');
+		if(url_tk[1] === (graph_tk[1]||trans_tk[1]) && url_tk[2] === (graph_tk[2]||trans_tk[2])){
+			console.log(_url+' -> '+fn);
+			fs.writeSync(fd,_data);
+		}
+
 	});
 };
 
@@ -65,4 +75,4 @@ if(flag){
 }
 if(!toRun)toRun = capture;
 
-new server(_confg,toRun);
+new server(proxy_config,toRun);
