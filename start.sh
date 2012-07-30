@@ -1,3 +1,3 @@
 clear
 rm -r logs/ && mkdir logs
-node test.js -c
+node test.js -r #-c
