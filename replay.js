@@ -1,7 +1,8 @@
 var http = require('http');
 
 var replayServer = http.createServer(function(req,res){
-	console.log(req);
+	res.write('{"foo":"bar"}');
+	res.end();
 });
 replayServer.listen(8888);
 var adr = replayServer.address();

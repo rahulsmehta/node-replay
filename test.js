@@ -85,7 +85,10 @@ new server(proxy_config,(isCap)?capture:replay);
 //Start the replay server if script loaded with flag -r
 if(!isCap){
 	var replayServer = http.createServer(function(req,res){
+		console.log(req);
 		console.log(req.url);
+		res.write('{"foo":"bar"}');
+		res.end();
 	});
 	replayServer.listen(8888);
 	var adr = replayServer.address();
