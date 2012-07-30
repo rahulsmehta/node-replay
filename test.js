@@ -2,7 +2,8 @@ var server = require('./lib/node-mitm-proxy/proxy.js'),
 		url = require('url'),
 		crypt = require('./lib/md5.js'),
 		fs = require('fs'),
-		http = require('http');
+		http = require('http'),
+		crypto = require('crypto');
 
 var scriptArgs = process.argv.slice(2),
 		flag = scriptArgs[0];
@@ -85,11 +86,17 @@ new server(proxy_config,(isCap)?capture:replay);
 //Start the replay server if script loaded with flag -r
 if(!isCap){
 	var replayServer = http.createServer(function(req,res){
-		console.log(req);
 		console.log(req.url);
-		res.write('{"foo":"bar"}');
+		res.write('{"foo":"bar"}\n');
 		res.end();
 	});
+
+	var _priv = fs.readFileSync('lib/node-mitm-proxy/certs/agent2-key.pem').toString(),
+			_cert = fs.readFileSync('lib/node-mitm-proxy/certs/agent2-cert.pem').toString(),
+			_cred = {key:_priv,cert:_cert},
+			cred = crypto.createCredentials(_cred);
+	replayServer.setSecure(_cred);
+
 	replayServer.listen(8888);
 	var adr = replayServer.address();
 	console.log("Replay server started at port "+adr.port);
