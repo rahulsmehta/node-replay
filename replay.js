@@ -26,7 +26,34 @@ if(typeof isCap === "undefined")isCap = true;
 var proxy_config = {
 	'proxy-port':8080,
 	'verbose':false
-	};
+	},
+	excludes = ["/GOST/"];
+
+
+
+var utils = {
+	'contains':function(orig,substr){
+		return orig.indexOf(substr) !== -1;
+	},
+	'hasExclude':function(urlStr){
+		var i;
+		for(i = 0; i<excludes.length; ++i){
+			if(this.contains(urlStr,excludes[i])){
+				return true;
+			}
+		}
+		return false;
+	},
+	'hash':function(_hash){
+		var md5 = crypto.createHash('md5');
+		md5.update((_hash[0]+_hash[1]+_hash[2]),'utf8'); // add command line flag for file format
+		return  md5.digest('hex');
+	}
+}
+
+
+
+
 
 var JPATH = "logs/";
 
@@ -41,8 +68,7 @@ var capture = function(proxy){
 	});
 
 	proxy.on('request_data',function(data){
-		var _data = data.toString('utf8',0,data.length);
-		hash.push(_data);
+		hash.push(data);
 	});
 
 	proxy.on('response',function(response){
@@ -55,61 +81,68 @@ var capture = function(proxy){
 	});
 
 	proxy.on('response_data', function(data) {
-		var md5 = crypto.createHash('md5');
-		md5.update((hash[0]+hash[1]+hash[2]),'utf8'); // add command line flag for file format
-
-		var fn = md5.digest('hex'),
+		if(!utils.hasExclude(_url)){
+			var fn = utils.hash(hash),	
 				_data = data.toString('utf8',0,data.length),
 				fd = fs.openSync(JPATH+fn, 'w+');
 
-		console.log(_url+' -> '+fn);
-		fs.writeSync(fd,_data);
+			console.log(_url+' -> '+fn);
+			fs.writeSync(fd,_data);
+		} else {
+			console.log("Excluding "+_url);
+		}	
 	});
 	
 };
 
 var replay = function(proxy){
-	var rewritten;
 	this.url_rewrite = function(req_url){
-		req_url.hostname = "localhost:8888";
-		changed = true;
-		return req_url;	
-	}
-
-	proxy.on('request',function(req,req_url){
-		if(changed){
-			console.log("Request redirected to "+url.format(req_url));
+		var path = url.format(req_url.path);	
+		if(!utils.hasExclude(path)){
+			req_url.hostname = 'localhost';
+			req_url.port = 8888;
+		} else {
+			console.log("Excluding "+path);
 		}
-	});
+	};
 
-};
+}
 
-new server(proxy_config,(isCap)?capture:replay);
+new server(proxy_config,isCap?capture:replay);
 
-//Start the replay server if script loaded with flag -r
 if(!isCap){
+	var _key = fs.readFileSync("lib/node-mitm-proxy/certs/agent2-key.pem",'utf8'),
+			_cert = fs.readFileSync("lib/node-mitm-proxy/certs/agent2-cert.pem",'utf8'),
+			replay_cred = {
+				key:_key,
+				cert:_cert
+			};
 
-	var _priv = fs.readFileSync('lib/node-mitm-proxy/certs/agent2-key.pem').toString(),
-			_cert = fs.readFileSync('lib/node-mitm-proxy/certs/agent2-cert.pem').toString(),
-			cred = {key:_priv,cert:_cert};
+	replayServer = https.createServer(replay_cred,function(req,res){
+		var _data;
+		function respond(data,method,req_url){
+			var hash = [data,method,req_url],
+				fn = utils.hash(hash);
+		
+			console.log(req_url+" -> "+fn);
+			res.write('{}\n');
+			res.end();
+		};
+		
+		req.on('data',function(data){
+			_data = data;
+		});
 
-	var replayServer = https.createServer(cred,function(req,res){
-		console.log(req.url);
-		res.write('{"foo":"bar"}\n');
-		res.end();
+		req.on('end',function(){
+			respond(_data,req.method,req.url);
+		});
+/*
+		req.setEncoding('utf8');
+		console.log("Replaying "+req.url);
+		res.write('{}\n');
+		res.end();*/
 	});
 
 	replayServer.listen(8888);
-	var adr = replayServer.address();
-	console.log("Replay server started at port "+adr.port);
+	console.log("Replay server started at port "+replayServer.address().port);
 }
-
-
-/*
-if(!isCap){
-	var replay = httpProxy.createServer(function(req,res,proxy){
-		console.log(req);
-		res.write('{"foo":"bar"}');
-		res.end();
-	}).listen(8888);
-}*/
