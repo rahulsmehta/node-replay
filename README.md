@@ -1,5 +1,4 @@
-Node Replay: JavaScript HTTP Replay Proxy
-=========================================
+node-replay
+===========
 
-
-HTTP replay proxy implemented in Node.js
+Documentation coming soon...
