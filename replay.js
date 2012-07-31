@@ -44,9 +44,9 @@ var utils = {
 		}
 		return false;
 	},
-	'hash':function(_hash){
+	'hash':function(data,method,path){
 		var md5 = crypto.createHash('md5');
-		md5.update((_hash[0]+_hash[1]+_hash[2]),'utf8'); // add command line flag for file format
+		md5.update((data+method+path),'utf8'); // add command line flag for file format
 		return  md5.digest('hex');
 	}
 }
@@ -55,20 +55,20 @@ var utils = {
 
 
 
-var JPATH = "logs/";
+var cacheDir = "data/";
 
 var capture = function(proxy){
-	
-	var hash = [],
-			cookies,
+	var cookies,
 			_url;
+
+	var hashData,hashMethod,hashPath;
 
 	proxy.on('request',function(req){
 		_url = req.url;	
 	});
 
 	proxy.on('request_data',function(data){
-		hash.push(data);
+		hashData = data;
 	});
 
 	proxy.on('response',function(response){
@@ -76,15 +76,15 @@ var capture = function(proxy){
 			cookies = response.headers['set-cookie'];
 		}
 		var _data = response.socket._httpMessage;
-		hash.push(_data.method);
-		hash.push(_data.path);
+		hashMethod = _data.method;
+		hashPath = _data.path;
 	});
 
 	proxy.on('response_data', function(data) {
 		if(!utils.hasExclude(_url)){
-			var fn = utils.hash(hash),	
+			var fn = utils.hash(hashData,hashMethod,hashPath),	
 				_data = data.toString('utf8',0,data.length),
-				fd = fs.openSync(JPATH+fn, 'w+');
+				fd = fs.openSync(cacheDir+fn, 'w+');
 
 			console.log(_url+' -> '+fn);
 			fs.writeSync(fd,_data);
@@ -121,9 +121,9 @@ if(!isCap){
 	replayServer = https.createServer(replay_cred,function(req,res){
 		var _data;
 		function respond(data,method,req_url){
-			var hash = [data,method,req_url],
-				fn = utils.hash(hash);
-		
+			
+			var fn = utils.hash(data,method,req_url);
+			
 			console.log(req_url+" -> "+fn);
 			res.write('{}\n');
 			res.end();
