@@ -52,19 +52,17 @@ var utils = {
 }
 
 
-
-
-
 var cacheDir = "data/";
 
 var capture = function(proxy){
-	var cookies,
-			_url;
-
-	var hashData,hashMethod,hashPath;
+	var _url;
+	var hashData,hashMethod,hashPath,_status;
+	var resData,resHead;
 
 	proxy.on('request',function(req){
 		_url = req.url;	
+		hashPath = _url;
+		hashMethod = req.method;
 	});
 
 	proxy.on('request_data',function(data){
@@ -72,22 +70,28 @@ var capture = function(proxy){
 	});
 
 	proxy.on('response',function(response){
-		if(response.headers['set-cookie']){
-			cookies = response.headers['set-cookie'];
-		}
 		var _data = response.socket._httpMessage;
-		hashMethod = _data.method;
-		hashPath = _data.path;
+		_status = response.statusCode;
+		resHead = response.headers;
 	});
 
 	proxy.on('response_data', function(data) {
+		resData = data.toString('utf8',0,data.length);
+	});
+
+	proxy.on('response_end',function(){
+		//move the file-writing logic into here
 		if(!utils.hasExclude(_url)){
 			var fn = utils.hash(hashData,hashMethod,hashPath),	
-				_data = data.toString('utf8',0,data.length),
 				fd = fs.openSync(cacheDir+fn, 'w+');
 
 			console.log(_url+' -> '+fn);
-			fs.writeSync(fd,_data);
+			var fileStore = {
+				'code':_status,
+				'headers':resHead,
+				'data':resData	
+			};
+			fs.writeSync(fd,fileStore);
 		} else {
 			console.log("Excluding "+_url);
 		}	
@@ -121,10 +125,11 @@ if(!isCap){
 	replayServer = https.createServer(replay_cred,function(req,res){
 		var _data;
 		function respond(data,method,req_url){
-			
 			var fn = utils.hash(data,method,req_url);
-			
 			console.log(req_url+" -> "+fn);
+
+			var fileStore = fs.readFileSync(cacheDir+fn,'utf8');
+			console.log(fileStore);
 			res.write('{}\n');
 			res.end();
 		};
