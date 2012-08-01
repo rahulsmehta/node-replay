@@ -90,8 +90,9 @@ var capture = function(proxy){
 				'code':_status,
 				'headers':resHead,
 				'data':resData	
-			};
-			fs.writeSync(fd,fileStore);
+			},
+				toWrite = JSON.stringify(fileStore);
+			fs.writeSync(fd,toWrite);
 		} else {
 			console.log("Excluding "+_url);
 		}	
@@ -127,11 +128,22 @@ if(!isCap){
 		function respond(data,method,req_url){
 			var fn = utils.hash(data,method,req_url);
 			console.log(req_url+" -> "+fn);
-
-			var fileStore = fs.readFileSync(cacheDir+fn,'utf8');
-			console.log(fileStore);
-			res.write('{}\n');
-			res.end();
+			var fileData,
+					err = false;
+			try{
+				fileData = JSON.parse(fs.readFileSync(cacheDir+fn,'utf8'));
+			} catch (errorThrown){
+				console.log("Error opening "+fn);
+				err = true;
+			}
+			if(err){
+				res.write('{}\n');
+				res.end();
+			} else {
+				res.writeHead(fileData.code,fileData.headers);
+				res.write(fileData.data);
+				res.end();
+			}
 		};
 		
 		req.on('data',function(data){
@@ -141,11 +153,6 @@ if(!isCap){
 		req.on('end',function(){
 			respond(_data,req.method,req.url);
 		});
-/*
-		req.setEncoding('utf8');
-		console.log("Replaying "+req.url);
-		res.write('{}\n');
-		res.end();*/
 	});
 
 	replayServer.listen(8888);
