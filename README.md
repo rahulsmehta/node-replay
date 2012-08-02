@@ -3,7 +3,7 @@ node-replay
 
 ##An HTTP replay proxy implemented in node.js
 
-node-replay enables a program to capture all outgoing and incoming HTTP traffic. This is especially useful for inspecting traffic as well as mocking API calls for unit-testing purposes. In fact, this is was initially developed to mock API calls by storing requests and their respective responses. node-replay extensively uses Horaci Cuevas' excellent man-in-the-middle proxy ([node-mitm-proxy](https://github.com/horaci/node-mitm-proxy)), which is also implemented in node.js. 
+Node-replay enables a program to capture all outgoing and incoming HTTP traffic. This is especially useful for inspecting traffic as well as mocking API calls for unit-testing purposes. In fact, this is was initially developed to mock API calls by storing requests and their respective responses. node-replay extensively uses Horaci Cuevas' excellent man-in-the-middle proxy ([node-mitm-proxy](https://github.com/horaci/node-mitm-proxy)), which is also implemented in node.js. 
 
 **Usage**
 
@@ -20,7 +20,11 @@ There are three startup scripts in the `scripts/` directory that will help autom
 
 **Logging**
 
-node-replay logs all requests in the `data/` directory, and also logs all of the command line output in the `logs/` directory. If the proxy is started from either `startCapture.sh` or `startReplay.sh`, the command line output from the proxy will also be logged to `capture.log` and `replay.log` respectively. 
+Node-replay logs all requests in the `data/` directory, and also logs all of the command line output in the `logs/` directory. If the proxy is started from either `startCapture.sh` or `startReplay.sh`, the command line output from the proxy will also be logged to `capture.log` and `replay.log` respectively. 
+
+**Integration with headless utilities**
+
+Integration with headless browser utilities such as PhantomJS is very simple with node-replay. Simply set the command line argument `--proxy=localhost:8080` at execution to proxy all PhantomJS traffic through node-replay. Alternately, this can be set in the config.json file as `'proxy':"localhost:8080"`.
 
 **Upcoming Features**
 
@@ -33,4 +37,8 @@ node-replay logs all requests in the `data/` directory, and also logs all of the
 * Support for included URLs
 
 * User-specified options for logging
+
+* User-specified ports at startup
+
+* More extensive command line arguments
 
