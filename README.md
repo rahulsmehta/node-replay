@@ -1,9 +1,9 @@
 node-replay
 ===========
 
-##A HTTP replay proxy implemented in node.js
+##An HTTP replay proxy implemented in node.js
 
-node-replay enables a program to capture all outgoing and incoming HTTP traffic. This is especially useful for inspecting traffic as well as mocking API calls for unit-testing purposes. In fact, this is was initially developed to mock API calls by storing requests and their respective responses. node-replay extensively uses Horaci Cuevas' excellent man-in-the-middle proxy ([node-mitm-proxy](https://github.com/horaci/node-mitm-proxy), which is also implemented in node.js. 
+node-replay enables a program to capture all outgoing and incoming HTTP traffic. This is especially useful for inspecting traffic as well as mocking API calls for unit-testing purposes. In fact, this is was initially developed to mock API calls by storing requests and their respective responses. node-replay extensively uses Horaci Cuevas' excellent man-in-the-middle proxy ([node-mitm-proxy](https://github.com/horaci/node-mitm-proxy)), which is also implemented in node.js. 
 
 **Usage**
 
