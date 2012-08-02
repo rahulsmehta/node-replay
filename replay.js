@@ -1,4 +1,4 @@
-var server = require('./lib/node-mitm-proxy/proxy.js'),
+var server = require('./lib/node-mitm-proxy/'),
 		url = require('url'),
 		fs = require('fs'),
 		https = require('https'),
@@ -66,7 +66,7 @@ var capture = function(proxy){
 	});
 
 	proxy.on('request_data',function(data){
-		hashData = data;
+		hashData = data.toString('utf8',0,data.length);
 	});
 
 	proxy.on('response',function(response){
@@ -84,7 +84,13 @@ var capture = function(proxy){
 		if(!utils.hasExclude(_url)){
 			var fn = utils.hash(hashData,hashMethod,hashPath),	
 				fd = fs.openSync(cacheDir+fn, 'w+');
-
+			
+			try{
+				resData = JSON.parse(resData);
+			} catch (err){
+				resData = {};
+			}
+			
 			console.log(_url+' -> '+fn);
 			var fileStore = {
 				'code':_status,
@@ -133,21 +139,21 @@ if(!isCap){
 			try{
 				fileData = JSON.parse(fs.readFileSync(cacheDir+fn,'utf8'));
 			} catch (errorThrown){
-				console.log("Error opening "+fn);
 				err = true;
 			}
 			if(err){
-				res.write('{}\n');
+				res.write('{}');
 				res.end();
 			} else {
 				res.writeHead(fileData.code,fileData.headers);
-				res.write(fileData.data);
+				_resData = JSON.stringify(fileData.data);
+				res.write(_resData);
 				res.end();
 			}
 		};
 		
 		req.on('data',function(data){
-			_data = data;
+			_data = data.toString('utf8',0,data.length);;
 		});
 
 		req.on('end',function(){
