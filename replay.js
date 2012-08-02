@@ -1,4 +1,4 @@
-var server = require('./lib/node-mitm-proxy/'),
+var server = require('./lib/proxy.js'),
     url = require('url'),
     fs = require('fs'),
     https = require('https'),
