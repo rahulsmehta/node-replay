@@ -118,8 +118,8 @@ var replay = function (proxy) {
 new server(proxy_config, isCap ? capture : replay);
 
 if (!isCap) {
-    var _key = fs.readFileSync("lib/node-mitm-proxy/certs/agent2-key.pem", 'utf8'),
-        _cert = fs.readFileSync("lib/node-mitm-proxy/certs/agent2-cert.pem", 'utf8'),
+    var _key = fs.readFileSync("lib/certs/agent2-key.pem", 'utf8'),
+        _cert = fs.readFileSync("lib/certs/agent2-cert.pem", 'utf8'),
         replay_cred = {
             key: _key,
             cert: _cert
