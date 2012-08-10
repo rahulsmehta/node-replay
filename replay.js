@@ -89,6 +89,9 @@ var capture = function (proxy) {
 
             console.log(_url + ' -> ' + fn);
             var fileStore = {
+								'url':hashPath,
+								'method':hashMethod,
+								'body':hashData,
                 'code': _status,
                 'headers': resHead,
                 'data': resData
