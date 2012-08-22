@@ -1,0 +1,9 @@
+{
+	"name":"node-replay",
+	"description":"An HTTP replay proxy implemented in Node.js",
+	"author":"Rahul Mehta <mehta.rahul95@gmail.com>",
+	"engine":"node 0.6.x",
+	"scripts":{
+		"test"
+	}
+}
