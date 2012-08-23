@@ -10,6 +10,6 @@
 	"scripts":{
 		"prestart":"bash scripts/cleanup.sh",
 		"start":"node replay.js -c",
-		"test":"jasmine-node tests/test.spec.js"
+		"test":"jasmine-node tests/"
 	}
 }

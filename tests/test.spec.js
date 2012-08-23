@@ -3,7 +3,7 @@ var fs = require('fs'),
 		exec = require('child_process').exec,
 		server;
 
-var spinUp = function(){
+beforeEach(function(){
 	var handler = function(request,response){
 		var _method = request.method,
 				_url = request.url;
@@ -25,40 +25,31 @@ var spinUp = function(){
 
 	server = http.createServer(handler);
 
-	server.listen(8080);
-}
-
-var tearDown = function(){
-	server.close();
-};
-
-beforeEach(function(){
-	spinUp();
+	server.listen(3000);
 });
 
 afterEach(function(){
-	tearDown();	
+	server.close();
 });
 
 describe("Capture test",function(){
 
-	it("Makes a regular request",function(){
-		var _data;
+	xit("Makes a regular request",function(){
+		var _data = null;
 		
 		var reqData = {
 			username:"test1",
 			password:"test1"
 			},
-			execStr = "curl -d '"+JSON.stringify(reqData)+"' localhost:8080";
+			execStr = "curl -d '"+JSON.stringify(reqData)+"' localhost:3000";
 			
-
-		curl = exec(execStr,function(err,stdout,stderr){
+		var curl = exec(execStr,function(err,stdout,stderr){
 			_data = JSON.parse(stdout);
 			curl.kill();
 		});
 
 		waitsFor(function(){
-			return _data;
+			return _data != null;
 		});
 
 		runs(function(){
@@ -66,7 +57,32 @@ describe("Capture test",function(){
 		});
 	});
 
+	it("Captures a request - correct response",function(){
+		var _data = null;
 
+		var execProxy = "bash scripts/test.sh";
+		var proxy = exec(execProxy,function(err,stdout,stderr){
+			console.log(stdout);
+			console.log(stderr);
+			console.log(err);
+		});
+
+		var execCurl = "curl -x localhost:8080 -d '{foo:true}'localhost:3000";	
+		var curl = exec(execCurl,function(err,stdout,stderr){
+			_data = stdout;
+			curl.kill();
+		});
+
+		waitsFor(function(){
+			return _data != null;
+		});
+
+		runs(function(){
+			expect(_data).toBeDefined();
+		});
+
+
+	});
 
 });
 
