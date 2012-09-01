@@ -1,5 +1,4 @@
-var server = require('./lib/proxy.js'),
-    url = require('url'),
+var url = require('url'),
     fs = require('fs'),
     https = require('https'),
     crypto = require('crypto');
@@ -38,19 +37,32 @@ var utils = {
         var md5 = crypto.createHash('md5');
         md5.update((data + method + path), 'utf8'); // add command line flag for file format
         return md5.digest('hex');
-    }
+    },
+		'getCredentials': function(keyPath,certPath){
+			_key = fs.readFileSync(keyPath||"lib/certs/agent2-key.pem");
+			_cert = fs.readFileSync(certPath||"lib/certs/agent2-cert.pem");
+			var result = {
+				'key':_key,
+				'cert':_cert
+			};
+			return result;
+		}
 }
 
 var cacheDir = "data/";
 
 
+var proxy = https.createServer(utils.getCredentials(),function(req,res){
+	//First get all the information out of the request	
+	
+	console.log(req);
+	
+});
+
+proxy.listen(8888);
+
 if (!isCap) {
-    var _key = fs.readFileSync("lib/certs/agent2-key.pem", 'utf8'),
-        _cert = fs.readFileSync("lib/certs/agent2-cert.pem", 'utf8'),
-        replay_cred = {
-            key: _key,
-            cert: _cert
-        };
+		replay_cred = utils.getCredentials();
 
     replayServer = https.createServer(replay_cred, function (req, res) {
         var _data;
