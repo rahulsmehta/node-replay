@@ -19,13 +19,7 @@ if (typeof isCap === "undefined") isCap = true;
 
 console.log(isCap ? "Running in capture mode..." : "Running in replay mode...");
 
-var proxy_config = {
-    'proxy-port': 8080,
-    'verbose': false
-},
-excludes = ["/GOST/"];
-
-
+var excludes = ["/GOST/"];
 
 var utils = {
     'contains': function (orig, substr) {
@@ -47,78 +41,8 @@ var utils = {
     }
 }
 
-
 var cacheDir = "data/";
 
-var capture = function (proxy) {
-    var _url;
-    var hashData, hashMethod, hashPath, _status;
-    var resData, resHead;
-
-    proxy.on('request', function (req) {
-        _url = req.url;
-        hashPath = _url;
-        hashMethod = req.method;
-    });
-
-    proxy.on('request_data', function (data) {
-        hashData = data.toString('utf8', 0, data.length);
-    });
-
-    proxy.on('response', function (response) {
-        var _data = response.socket._httpMessage;
-        _status = response.statusCode;
-        resHead = response.headers;
-    });
-
-    proxy.on('response_data', function (data) {
-        resData = data.toString('utf8', 0, data.length);
-    });
-
-    proxy.on('response_end', function () {
-        //move the file-writing logic into here
-        if (!utils.hasExclude(_url)) {
-            var fn = utils.hash(hashData, hashMethod, hashPath),
-                fd = fs.openSync(cacheDir + fn, 'w+');
-
-            try {
-                resData = JSON.parse(resData);
-            } catch (err) {
-                resData = {};
-            }
-
-            console.log(_url + ' -> ' + fn);
-            var fileStore = {
-								'url':hashPath,
-								'method':hashMethod,
-								'body':hashData,
-                'code': _status,
-                'headers': resHead,
-                'data': resData
-            },
-            toWrite = JSON.stringify(fileStore);
-            fs.writeSync(fd, toWrite);
-        } else {
-            console.log("Excluding " + _url);
-        }
-    });
-
-};
-
-var replay = function (proxy) {
-    this.url_rewrite = function (req_url) {
-        var path = url.format(req_url.path);
-        if (!utils.hasExclude(path)) {
-            req_url.hostname = 'localhost';
-            req_url.port = 8888;
-        } else {
-            console.log("Excluding " + path);
-        }
-    };
-
-}
-
-new server(proxy_config, isCap ? capture : replay);
 
 if (!isCap) {
     var _key = fs.readFileSync("lib/certs/agent2-key.pem", 'utf8'),
