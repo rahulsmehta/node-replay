@@ -22,6 +22,6 @@ There are three startup scripts in the `scripts/` directory that will help autom
 
 Node-replay logs all requests in the `data/` directory, and also logs all of the command line output in the `logs/` directory. If the proxy is started from either `startCapture.sh` or `startReplay.sh`, the command line output from the proxy will also be logged to `capture.log` and `replay.log` respectively. 
 
-###Integration with headless utilities
+### Integration with headless testing utilities
 
 Integration with headless browser utilities such as PhantomJS is very simple with node-replay. Simply set the command line argument `--proxy=localhost:8080` at execution to proxy all PhantomJS traffic through node-replay. Alternately, this can be set in the config.json file as `'proxy':"localhost:8080"`.
